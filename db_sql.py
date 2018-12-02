@@ -8,6 +8,7 @@ from google.cloud import vision
 from google.cloud.vision import types, ImageAnnotatorClient
 import io
 import os
+import collections
 
 #################################################################
 
@@ -89,7 +90,23 @@ def main():
 		mycursor.execute(sql, val)
 		mydb.commit()
 
+	mycursor.execute("SELECT * FROM Twitter;")
+	result = mycursor.fetchall()
+	print(result)
+	idk = analysis()
+	something = query()
+
 	return 0
+
+def analysis():
+	# mycursor.execute("SELECT Label,COUNT(*) as occurance FROM Twitter GROUP BY Label;")
+	pass
+
+def query():
+	pass
+
+
+
 
 ###################################################################
 
