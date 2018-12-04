@@ -10,6 +10,11 @@ from google.cloud.vision import types, ImageAnnotatorClient
 import io
 import os
 
+from collections import Counter
+import matplotlib.pyplot as plt
+import numpy as np
+
+
 def twitter_data(lines, count):
 	line_new = lines.split('"')
 	substring_1 = "media_url"
@@ -38,9 +43,6 @@ def twitter_data(lines, count):
 		handle = 'None'
 	return (user_name, handle, media_url, label)
 
-
-#################################################################
-
 def vision(img_name):
 	vision_client = ImageAnnotatorClient()
 	file_name = str(img_name)
@@ -55,12 +57,17 @@ def vision(img_name):
 
 	return label.description
 
-#################################################################
-
 def main():
 	filename = "fetched_tweets.json"
 	file = open(filename)
 	os.system("export GOOGLE_APPLICATION_CREDENTIALS='google_credentials.json'")
+
+
+	test=os.listdir("/home/ece-student/EC_601/Mini_Proj_3/")
+	for item in test:
+	    if item.endswith(".jpg"):
+	        os.remove(item)
+
 	count = 0
 
 	myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -73,13 +80,44 @@ def main():
 		name, handle, media, label = twitter_data(lines, count)
 
 		mydict = {"Name" : name, "Handle" : handle, "Media" : media, "Label" : label}
+
+		result = mycol.insert_one(mydict)
+
+	# print("\nTotal Handles: ", len(result))
+	# print("Handles with media file: ", num_images)
+	num_images = []
+	Label_1 = []
+	for result in mycol.find():
+		# print(result)
+		occurance, num = analysis(result, Label_1, num_images)
+	print("\n")
+	for key in occurance:
+		print(key, " : ", occurance[key])
+
+	print("\nTotal Handles: 100") 
+	print("Handles with media file: ", len(num))
+
+
+def analysis(result, Label_1, num_images):
+	Label_1.append(result.get("Label"))
+	occurance = Counter(Label_1)
+	Media_1 = []
+	Media_1 = result.get("Media")
+	if Media_1 == 'None':
+		pass
+	else:
+		num_images.append('1')
+
+	return occurance, num_images
+
+if __name__ == "__main__":
+	main()
+
 		x = mycol.insert_one(mydict)
 	# print(x.inserted_ids)
 	print("")
 	for x in mycol.find():
 		print(x)
-
-###################################################################
 
 if __name__ == "__main__":
 	main()
