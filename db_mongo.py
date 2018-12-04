@@ -1,6 +1,14 @@
 import json
 import pymongo
 from pymongo import MongoClient, ReturnDocument
+import json
+import wget
+import argparse
+import sys
+from google.cloud import vision
+from google.cloud.vision import types, ImageAnnotatorClient
+import io
+import os
 
 def twitter_data(lines, count):
 	line_new = lines.split('"')
@@ -52,6 +60,8 @@ def vision(img_name):
 def main():
 	filename = "fetched_tweets.json"
 	file = open(filename)
+	os.system("export GOOGLE_APPLICATION_CREDENTIALS='google_credentials.json'")
+	count = 0
 
 	myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 	myclient.drop_database("Mini_Proj_3")
@@ -59,12 +69,13 @@ def main():
 	mycol = mydb["Twitter"]
 
 	for lines in file:
-		name, handle, media = twitter_data(lines)
+		count = int(count) + 1
+		name, handle, media, label = twitter_data(lines, count)
 
-		mydict = {"Name" : name, "Handle" : handle, "Media" : media}
+		mydict = {"Name" : name, "Handle" : handle, "Media" : media, "Label" : label}
 		x = mycol.insert_one(mydict)
 	# print(x.inserted_ids)
-
+	print("")
 	for x in mycol.find():
 		print(x)
 
