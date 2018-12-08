@@ -16,6 +16,7 @@ import numpy as np
 
 
 def twitter_data(lines, count):
+	'''Twitter data'''
 	line_new = lines.split('"')
 	substring_1 = "media_url"
 	if substring_1 in lines:		
@@ -44,6 +45,7 @@ def twitter_data(lines, count):
 	return (user_name, handle, media_url, label)
 
 def vision(img_name):
+	'''Labels for media file using Vision API'''
 	vision_client = ImageAnnotatorClient()
 	file_name = str(img_name)
 
@@ -67,6 +69,7 @@ def graph(obj, val, y_pos):
 	return 0
 
 def analysis(result, Label_1, num_images):
+	'''Used to find labels and their occurances'''
 	Label_1.append(result.get("Label"))
 	occurance = Counter(Label_1)
 	Media_1 = []
