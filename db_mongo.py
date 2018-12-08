@@ -57,46 +57,14 @@ def vision(img_name):
 
 	return label.description
 
-def main():
-	filename = "fetched_tweets.json"
-	file = open(filename)
-	os.system("export GOOGLE_APPLICATION_CREDENTIALS='google_credentials.json'")
-
-
-	test=os.listdir("/home/ece-student/EC_601/Mini_Proj_3/")
-	for item in test:
-	    if item.endswith(".jpg"):
-	        os.remove(item)
-
-	count = 0
-
-	myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-	myclient.drop_database("Mini_Proj_3")
-	mydb = myclient["Mini_Proj_3"]
-	mycol = mydb["Twitter"]
-
-	for lines in file:
-		count = int(count) + 1
-		name, handle, media, label = twitter_data(lines, count)
-
-		mydict = {"Name" : name, "Handle" : handle, "Media" : media, "Label" : label}
-
-		result = mycol.insert_one(mydict)
-
-	# print("\nTotal Handles: ", len(result))
-	# print("Handles with media file: ", num_images)
-	num_images = []
-	Label_1 = []
-	for result in mycol.find():
-		# print(result)
-		occurance, num = analysis(result, Label_1, num_images)
-	print("\n")
-	for key in occurance:
-		print(key, " : ", occurance[key])
-
-	print("\nTotal Handles: 100") 
-	print("Handles with media file: ", len(num))
-
+def graph(obj, val, y_pos):
+	'''Plots graph for all labels'''
+	plt.barh(y_pos, val, align='center')
+	plt.yticks(y_pos, obj)
+	plt.xlabel('Occurance of Label')
+	plt.title('Labels in Media')
+	plt.show()
+	return 0
 
 def analysis(result, Label_1, num_images):
 	Label_1.append(result.get("Label"))
@@ -110,14 +78,94 @@ def analysis(result, Label_1, num_images):
 
 	return occurance, num_images
 
-if __name__ == "__main__":
-	main()
+def main():
+	# loads a file with Twitter data
+	filename = "fetched_tweets.json"
+	file = open(filename)
+	# Exports Google credentials
+	os.system("export GOOGLE_APPLICATION_CREDENTIALS='google_credentials.json'")
 
-		x = mycol.insert_one(mydict)
-	# print(x.inserted_ids)
-	print("")
-	for x in mycol.find():
-		print(x)
+	# Used to delete images that may be downloaded multiple times
+	test=os.listdir("/home/ayush34/Desktop/Mini_Proj_3/Mini_Proj_3/")
+	for item in test:
+	    if item.endswith(".jpg"):
+	        os.remove(item)
 
+	count = 0
+
+	# Connect to MongoDB
+	myclient = pymongo.MongoClient()
+	try:
+		myclient.drop_database("Mini_Proj_3")
+	except:
+		pass
+	mydb = myclient["Mini_Proj_3"]
+	mycol = mydb["Twitter"]
+
+	line_count = 1
+
+	for lines in file:
+		count = int(count) + 1
+		name, handle, media, label = twitter_data(lines, count)
+
+		mydict = {"Name" : name, "Handle" : handle, "Media" : media, "Label" : label}
+
+		result = mycol.insert_one(mydict)
+		line_count += 1
+
+	# Used to print Label and their occurance
+	num_images = []
+	Label_1 = []
+	for result in mycol.find():
+		occurance, num = analysis(result, Label_1, num_images)
+	print("\n")
+	obj = []
+	val = []
+	for key in occurance:
+		print(key, " : ", occurance[key])
+		obj.append(key)
+		val.append(occurance[key])
+	y_pos = np.arange(len(obj))
+
+	# Prints Total Handles and Handles with Media files
+	print("\nTotal Handles: ", line_count) 
+	print("Handles with media file: ", len(num))
+
+	print("\nCheck all labels in database")
+
+	# Used to ask query (label in this case)
+	q_num = 1
+	while(q_num == 1):
+		q_num = input("\nTo check label data [press 1]    Quit [press any]: ")
+		try:
+			q_num = int(q_num)
+			q = input("Type a label name to check their handles: ")
+			q = str(q)
+			Q = {"Label" : q}
+		except:
+			q_num = 2
+		if (q_num == 1):
+			try:
+				mydoc = mycol.find(Q)
+				for queries in mydoc:
+					print(queries)
+			except:
+				print("Label does not exist")
+		else:
+			pass
+
+	# Displays a graph with all labels and their occurances
+	g = input("\nTo check graph [press 1]    Quit [press any]: ")
+	try:
+		g = int(g)
+	except:
+		g = 2
+	if g == 1:
+		graph(obj, val, y_pos)
+	else:
+		print("Graph not displayed")
+	return 0
+
+# Main is executed first
 if __name__ == "__main__":
 	main()
